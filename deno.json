@@ -1,0 +1,45 @@
+{
+  "name": "@nick/resvg",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "Nicholas Berlette",
+    "email": "nick@berlette.com",
+    "url": "https://github.com/nberlette"
+  },
+  "tasks": {
+    "build:wasm": "deno run -Aq jsr:@deno/wasmbuild@0.19.1 --out ./src/wasm --inline",
+    "compress": "deno run -Aq scripts/compress.ts ./src/wasm/resvg.js",
+    "build:core": "deno run build:wasm --no-default-features --features \"fonts-core\"",
+    "build:core:br": "deno run build:wasm --no-default-features --features \"brotli fonts-core\"",
+    "build:lite": "deno run build:wasm --no-default-features --features \"lite\"",
+    "build:lite:br": "deno run build:wasm --no-default-features --features \"brotli\"",
+    "build:full": "deno run build:wasm --no-default-features --features \"brotli fonts-all\"",
+    "build": "deno run build:core && deno run compress"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./render": "./src/render.ts",
+    "./options": "./src/options.ts",
+    "./wasm": "./src/wasm/resvg.js",
+    "./wasm.js": "./src/wasm/resvg.js",
+    "./wasm.d.ts": "./src/wasm/resvg.d.ts"
+  },
+  "imports": {
+    "@nick/utf8": "jsr:@nick/utf8@^0.3.3"
+  },
+  "publish": {
+    "include": [
+      "./src",
+      "**/*.ts",
+      "**/*.js",
+      "**/*.md",
+      "**/*.json"
+    ],
+    "exclude": [
+      "./src/wasm/src",
+      "**/*.test.*",
+      "**/*.bench.*"
+    ]
+  }
+}

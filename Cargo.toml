@@ -1,24 +1,35 @@
-[package]
-name = "resvg_wasm"
-version = "0.1.0"
-edition = "2021"
-description = "Deno wasm bindings for resvg"
-authors = ["Kitson P. Kelly"]
-license = "MIT"
+[workspace]
+  members  = ["rs_lib"]
+  resolver = "2"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-name = "resvg_wasm"
-
-[dependencies]
-js-sys = "=0.3.58"
-resvg = "=0.23.0"
-tiny-skia = "=0.6.6"
-usvg = { version = "0.23.0", default-features = false, features = ["text"] }
-wasm-bindgen = "=0.2.81"
+[workspace.dependencies]
+  cfg-if                   = "=1.0.0"
+  lazy_static              = "=1.5.0"
+  regex                    = "=1.11.1"
+  resvg                    = "=0.44.0"
+  tiny-skia                = "=0.11.4"
+  serde-wasm-bindgen       = "=0.6.5"
+  js-sys                   = "=0.3.77"
+  serde                    = { version = "=1.0.217", features = ["derive"] }
+  usvg                     = { version = "=0.44.0", features = ["text", "fontdb"] }
+  wasm-bindgen             = { version = "=0.2.100", features = [] }
+  wee_alloc                = "=0.4.5"
+  brotli-decompressor      = "=4.0.2"
+  console_error_panic_hook = "=0.1.7"
 
 [profile.release]
-codegen-units = 1
-incremental = true
-lto = true
-opt-level = "s"
+  lto              = true
+  codegen-units    = 1
+  incremental      = true
+  opt-level        = "z"
+  strip            = "symbols"
+  rpath            = true
+
+[profile.dev]
+  lto              = true
+  opt-level        = 0
+  strip            = "none"
+  incremental      = true
+  rpath            = false
+  debug            = true
+  debug-assertions = true
