@@ -1,10 +1,10 @@
-import { assertEquals } from "https://deno.land/std@0.116.0/testing/asserts.ts";
-import { render } from "./mod.ts";
+import { assertEquals } from "jsr:@std/assert@~1";
+import { render } from "../mod.ts";
 
 Deno.test({
   name: "basic",
-  async fn() {
-    const data = await render(
+  fn() {
+    const data = render(
       `<?xml version="1.0" encoding="UTF-8"?>
       <svg width="820px" height="312px" viewBox="0 0 820 312" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
           <title>Testing</title>
@@ -19,6 +19,6 @@ Deno.test({
           </g>
       </svg>`,
     );
-    assertEquals(data.byteLength, 9651);
+    assertEquals(data.byteLength, 26070);
   },
 });
