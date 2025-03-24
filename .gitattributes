@@ -1,0 +1,17 @@
+# Use Unix line endings in all text files.
+* text=auto eol=lf
+
+# Exclude testdata from linguist
+tests/fixtures/** linguist-vendored
+# Exclude development files from linguist
+.devcontainer/** linguist-vendored
+.vscode/** linguist-vendored
+# Exclude ci/cd files from linguist
+.github/** linguist-vendored
+# Exclude build files from linguist
+lib/** linguist-vendored
+# Exclude vendor files from linguist
+vendor/** linguist-vendored
+node_modules/** linguist-vendored
+# Exclude fonts from linguist
+fonts/** linguist-vendored
