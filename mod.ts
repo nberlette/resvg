@@ -9,7 +9,6 @@ import "@nick/utf8/shim";
 
 // @ts-types="./lib/resvg.d.ts"
 import * as resvg from "./lib/resvg.js";
-import type { Options } from "./options.ts";
 
 export * from "./options.ts";
 
