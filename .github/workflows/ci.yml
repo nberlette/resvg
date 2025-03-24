@@ -1,0 +1,194 @@
+name: CI + Publish
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      deno-version:
+        type: string
+        description: "Deno version or tag to use"
+        default: "canary"
+      deno-test:
+        type: boolean
+        description: "Run deno test?"
+        default: true
+      deno-doctest:
+        type: boolean
+        description: "Run deno test --doc?"
+        default: false
+      deno-fmt:
+        type: boolean
+        description: "Run deno fmt?"
+        default: true
+      deno-lint:
+        type: boolean
+        description: "Run deno lint?"
+        default: true
+      deno-doc:
+        description: "Run deno doc?"
+        type: choice
+        options:
+          - "none"
+          - "lint"
+          - "html"
+          - "json"
+      deno-publish:
+        type: boolean
+        description: "Publish to JSR?"
+        default: true
+jobs:
+  ci:
+    name: Quality Control
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ github.event.inputs.deno-version || 'canary' }}
+
+      - name: Setup Rust
+        uses: dsherret/rust-toolchain-file@v1
+
+      - id: cargo-fmt
+        name: cargo fmt --check
+        continue-on-error: true
+        run: cargo fmt --all -- --check
+
+      - id: try-restore-artifact
+        name: Try to Restore Artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: resvg-${{ github.sha }}
+          path: ${{ github.workspace }}/lib
+
+      - if: |
+          steps.try-restore-artifact.outcome != 'success' ||
+          steps.try-restore-artifact.outputs.download-path == ''
+        id: build
+        name: Build WebAssembly Bindings
+        run: deno task build
+
+      - id: deno-fmt
+        name: deno fmt
+        if: |
+          (
+            github.event_name != 'workflow_dispatch' ||
+            github.event.inputs.deno-fmt == 'true'
+          ) && steps.build.outcome == 'success'
+        run: deno fmt --check
+
+      - id: deno-lint
+        name: deno lint
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.deno-lint == 'true'
+        run: deno lint
+
+      - id: deno-doc-lint
+        name: deno doc --lint
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.deno-doc == 'lint'
+        run: deno doc --lint mod.ts
+
+      - id: deno-test
+        name: deno test
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.deno-test == 'true'
+        run: deno test -A --no-check=remote --parallel
+
+      - id: deno-doctest
+        name: deno test --doc
+        if: |
+          github.event_name != 'workflow_dispatch' ||
+          github.event.inputs.deno-doctest == 'true'
+        run: deno test -A --no-check=remote --doc --parallel
+        continue-on-error: true
+
+      - if: |
+          steps.try-restore-artifact.outcome != 'success' ||
+          steps.try-restore-artifact.outputs.download-path == ''
+        id: upload-artifact
+        name: upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: resvg-${{ github.sha }}
+          path: ${{ github.workspace }}/lib
+          retention-days: 7
+
+  publish:
+    name: Publish
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: |
+      needs.ci.result == 'success' && (
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.deno-publish == 'true'
+        ) || (
+          github.event_name == 'push' &&
+          startsWith(github.ref, 'refs/tags/')
+        )
+      )
+    concurrency:
+      group: publish-${{ github.ref_name }}
+      cancel-in-progress: true
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: artifact
+        name: Download Artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: resvg-${{ github.sha }}
+          path: ${{ github.workspace }}/lib
+
+      - name: Setup Deno
+        if: |
+          steps.artifact.outcome != 'success' ||
+          steps.artifact.outputs.download-path == ''
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ github.event.inputs.deno-version || 'canary' }}
+
+      - name: Setup Rust
+        if: |
+          steps.artifact.outcome != 'success' ||
+          steps.artifact.outputs.download-path == ''
+        uses: dsherret/rust-toolchain-file@v1
+
+      - id: build
+        name: Build WebAssembly Bindings
+        if: |
+          steps.artifact.outcome != 'success' ||
+          steps.artifact.outputs.download-path == ''
+        run: deno task build
+
+      - name: Publish to JSR
+        if: |
+          steps.build.outcome == 'success' ||
+          steps.artifact.outcome == 'success' ||
+          steps.artifact.outputs.download-path == ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx jsr publish --dry-run --allow-dirty && npx jsr publish --allow-dirty
