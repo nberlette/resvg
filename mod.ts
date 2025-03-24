@@ -105,7 +105,10 @@ export type InputType = string | BufferSource;
  * Deno.writeFileSync("text.png", png);
  * ```
  */
-export function render(svg: InputType, options?: resvg.OptionsLike): Uint8Array {
+export function render(
+  svg: InputType,
+  options?: resvg.OptionsLike,
+): Uint8Array {
   try {
     if (typeof svg !== "string") {
       const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
