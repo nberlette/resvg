@@ -1,0 +1,52 @@
+[package]
+  name        = "resvg_wasm"
+  version     = "0.2.0"
+  edition     = "2021"
+  description = "Web assembly bindings for rendering SVG to PNG with resvg"
+  authors     = ["Nicholas Berlette", "Kitson P. Kelly"]
+  license     = "MIT"
+  repository  = "https://github.com/nberlette/resvg"
+  homepage    = "https://jsr.io/@nick/resvg/doc"
+
+[lib]
+  name       = "resvg"
+  crate-type = ["cdylib"]
+
+[features]
+  default            = ["brotli", "fonts-core"]
+  alloc-mt           = ["alloc"]
+  alloc              = ["dep:lol_alloc", "serde/alloc", "wasm-bindgen/gg-alloc"]
+  brotli             = ["dep:brotli-decompressor"]
+  internal-debug     = ["dep:console_error_panic_hook"]
+  fonts-all          = ["fonts-core", "fonts-extra"]
+  fonts-core         = ["font-numbers", "font-jetbrains", "font-inter", "font-bitter"]
+  fonts-extra        = ["font-obsidian", "font-sentinel", "font-decimal", "font-inkwell", "font-operator-nerd", "font-gotham"]
+  lite               = []
+  font-numbers       = []
+  font-obsidian      = []
+  font-sentinel      = []
+  font-inter         = []
+  font-bitter        = []
+  font-decimal       = []
+  font-gotham        = []
+  font-inkwell       = []
+  font-jetbrains     = []
+  font-operator-nerd = []
+
+[dependencies]
+  cfg-if                   = { workspace = true }
+  js-sys                   = { workspace = true }
+  lazy_static              = { workspace = true }
+  regex                    = { workspace = true }
+  resvg                    = { workspace = true }
+  serde                    = { workspace = true, features = ["derive"] }
+  serde-wasm-bindgen       = { workspace = true }
+  tiny-skia                = { workspace = true }
+  usvg                     = { workspace = true }
+  wasm-bindgen             = { workspace = true }
+  brotli-decompressor      = { workspace = true, optional = true }
+  console_error_panic_hook = { workspace = true, optional = true }
+  lol_alloc                = { workspace = true, optional = true }
+
+[dev-dependencies]
+  base64 = "0.22.1"
