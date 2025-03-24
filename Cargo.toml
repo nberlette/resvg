@@ -10,26 +10,22 @@
   tiny-skia                = "=0.11.4"
   serde-wasm-bindgen       = "=0.6.5"
   js-sys                   = "=0.3.77"
-  serde                    = { version = "=1.0.217", features = ["derive"] }
+  serde                    = { version = "=1.0.219", features = ["derive"] }
   usvg                     = { version = "=0.44.0", features = ["text", "fontdb"] }
   wasm-bindgen             = { version = "=0.2.100", features = [] }
-  wee_alloc                = "=0.4.5"
+  lol_alloc                = "=0.4.1"
   brotli-decompressor      = "=4.0.2"
   console_error_panic_hook = "=0.1.7"
 
 [profile.release]
   lto              = true
-  codegen-units    = 1
-  incremental      = true
   opt-level        = "z"
   strip            = "symbols"
-  rpath            = true
 
 [profile.dev]
   lto              = true
   opt-level        = 0
   strip            = "none"
-  incremental      = true
   rpath            = false
   debug            = true
   debug-assertions = true
